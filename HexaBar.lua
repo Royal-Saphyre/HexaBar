@@ -12,9 +12,6 @@ HexaBar.version = GetAddOnMetadata("HexaBar", "Version") or "0.1.0"
 -- ---------------------------------------------------------------------
 
 local defaults = {
-  slotSize    = 36,   -- px, width/height of each hex button
-  slotSpacing = 4,     -- px gap between hex buttons
-  honeycomb   = true,   -- offset alternating rows for a true hex-grid look
   showGryphon = true,    -- gold gryphon endcaps on the main bar
   barsLocked  = true,     -- drag-to-move disabled until unlocked via minimap menu
   barPositions = {},       -- [barName] = { point, relativeTo, relativePoint, x, y }
