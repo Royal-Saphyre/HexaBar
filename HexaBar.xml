@@ -1,0 +1,102 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+    ..\FrameXML\UI.xsd">
+
+  <Script file="HexaBar.lua"/>
+
+  <!--
+    Hexagon action button template.
+    3.3.5 has no texture masking, so the hexagon shape comes from
+    pre-cut hexagon .tga textures (Textures\hexagon-*.tga) rather
+    than a runtime mask. Icon art is placed underneath and clipped
+    by the frame's own hexagon border texture on top.
+  -->
+  <Button name="HexaBarButtonTemplate" inherits="SecureActionButtonTemplate" virtual="true">
+    <Size x="36" y="36"/>
+
+    <Layers>
+      <Layer level="BACKGROUND">
+        <!-- spell/item icon, square texcoords slightly inset so corners
+             get covered by the hex border layer on ARTWORK -->
+        <Texture name="$parentIcon" parentKey="icon" setAllPoints="true">
+          <TexCoords left="0.08" right="0.92" top="0.08" bottom="0.92"/>
+        </Texture>
+      </Layer>
+
+      <Layer level="ARTWORK">
+        <!-- hex-shaped frame border drawn over the icon to crop it visually -->
+        <Texture name="$parentBorder" parentKey="border" file="Interface\AddOns\HexaBar\Textures\hexagon-border" setAllPoints="true"/>
+      </Layer>
+
+      <Layer level="OVERLAY">
+        <FontString name="$parentHotKey" parentKey="hotkey" inherits="NumberFontNormalSmallGray" justifyH="RIGHT">
+          <Size x="30" y="10"/>
+          <Anchors>
+            <Anchor point="TOPRIGHT" x="-2" y="-2"/>
+          </Anchors>
+        </FontString>
+        <FontString name="$parentCount" parentKey="count" inherits="NumberFontNormal" justifyH="RIGHT">
+          <Anchors>
+            <Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+          </Anchors>
+        </FontString>
+        <FontString name="$parentName" parentKey="macroName" inherits="GameFontHighlightSmallOutline">
+          <Size x="34" y="10"/>
+          <Anchors>
+            <Anchor point="BOTTOM" x="0" y="2"/>
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+
+    <NormalTexture name="$parentNormalTexture" file="Interface\AddOns\HexaBar\Textures\hexagon-normal"/>
+    <PushedTexture file="Interface\AddOns\HexaBar\Textures\hexagon-pushed"/>
+    <HighlightTexture file="Interface\AddOns\HexaBar\Textures\hexagon-highlight" alphaMode="ADD"/>
+    <CheckedTexture file="Interface\AddOns\HexaBar\Textures\hexagon-checked" alphaMode="ADD"/>
+
+    <Frames>
+      <Cooldown name="$parentCooldown" parentKey="cooldown" inherits="CooldownFrameTemplate" setAllPoints="true"/>
+    </Frames>
+
+    <Scripts>
+      <OnLoad>HexaBar_Button_OnLoad(self)</OnLoad>
+      <OnEnter>HexaBar_Button_OnEnter(self)</OnEnter>
+      <OnLeave>HexaBar_Button_OnLeave(self)</OnLeave>
+    </Scripts>
+  </Button>
+
+  <!--
+    A bar container: just a plain secure frame that positions its child
+    hex buttons in a honeycomb (offset row) layout. Actual button spawning
+    and offsetting math happens in Bars.lua so slot count/spacing are
+    configurable from saved variables rather than fixed in XML.
+  -->
+  <Frame name="HexaBarBarTemplate" inherits="SecureHandlerStateTemplate" virtual="true">
+    <Size x="10" y="10"/>
+    <Frames>
+      <!-- gold gryphon endcaps, shown/hidden per-bar from Lua (main bar only by default) -->
+      <Texture name="$parentGryphonLeft" parentKey="gryphonLeft" file="Interface\MainMenuBar\UI-MainMenuBar-Small-GryphonLeft" hidden="true">
+        <Size x="60" y="52"/>
+        <Anchors>
+          <Anchor point="RIGHT" relativeKey="$parent" relativePoint="LEFT" x="6" y="-4"/>
+        </Anchors>
+      </Texture>
+      <Texture name="$parentGryphonRight" parentKey="gryphonRight" file="Interface\MainMenuBar\UI-MainMenuBar-Small-GryphonRight" hidden="true">
+        <Size x="60" y="52"/>
+        <Anchors>
+          <Anchor point="LEFT" relativeKey="$parent" relativePoint="RIGHT" x="-6" y="-4"/>
+        </Anchors>
+      </Texture>
+    </Frames>
+  </Frame>
+
+  <!-- Root frame: created once, drives ADDON_LOADED / PLAYER_LOGIN bootstrap in HexaBar.lua -->
+  <Frame name="HexaBarRootFrame">
+    <Scripts>
+      <OnLoad>HexaBar_OnLoad(self)</OnLoad>
+      <OnEvent>HexaBar_OnEvent(self, event, ...)</OnEvent>
+    </Scripts>
+  </Frame>
+
+</Ui>
