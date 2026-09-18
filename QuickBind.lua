@@ -168,6 +168,26 @@ local function InsertGameMenuButton()
   local logoutButton = GameMenuButtonLogout
   if not logoutButton then return end
 
+  -- known default GameMenuFrame button order for 3.3.5. Some of these
+  -- may not exist/be shown depending on context (e.g. Store, WhatsNew) -
+  -- we skip anything nil or hidden.
+  local order = {
+    "GameMenuButtonHelp", "GameMenuButtonWhatsNew", "GameMenuButtonStore",
+    "GameMenuButtonOptions", "GameMenuButtonUIOptions", "GameMenuButtonKeybindings",
+    "GameMenuButtonMacros", "GameMenuButtonAddons", "GameMenuButtonLogout", "GameMenuButtonQuit",
+  }
+
+  -- find Logout's position in that list so we know what to anchor Quick
+  -- Bind directly under, then re-anchor everything AFTER Logout below
+  -- our new button instead.
+  local logoutIndex
+  for idx, name in ipairs(order) do
+    if _G[name] == logoutButton then
+      logoutIndex = idx
+      break
+    end
+  end
+
   local btn = CreateFrame("Button", "HexaBarQuickBindButton", GameMenuFrame, "GameMenuButtonTemplate")
   btn:SetText("Quick Bind")
   btn:SetPoint("TOP", logoutButton, "BOTTOM", 0, -1)
@@ -176,25 +196,15 @@ local function InsertGameMenuButton()
     EnterBindMode()
   end)
 
-  -- shift everything below the new button down so it doesn't overlap
-  local below = { GameMenuButtonOptions, GameMenuButtonUIOptions, GameMenuButtonKeybindings,
-                   GameMenuButtonMacros, GameMenuButtonAddons, GameMenuButtonLogout == logoutButton and nil or nil }
-  -- simplest reliable approach for 3.3.5: reflow the whole known button list
-  local order = {
-    "GameMenuButtonHelp", "GameMenuButtonWhatsNew", "GameMenuButtonStore",
-    "GameMenuButtonOptions", "GameMenuButtonUIOptions", "GameMenuButtonKeybindings",
-    "GameMenuButtonMacros", "GameMenuButtonAddons", "GameMenuButtonLogout", "GameMenuButtonQuit",
-  }
-  local anchor = logoutButton
   local prev = btn
-  for _, name in ipairs(order) do
-    local f = _G[name]
-    if f and f == GameMenuButtonLogout then
-      f:ClearAllPoints()
-      f:SetPoint("TOP", prev, "BOTTOM", 0, -1)
-      prev = f
-    elseif f and prev ~= btn and f:IsShown() then
-      prev = f
+  if logoutIndex then
+    for idx = logoutIndex + 1, #order do
+      local f = _G[order[idx]]
+      if f and f:IsShown() then
+        f:ClearAllPoints()
+        f:SetPoint("TOP", prev, "BOTTOM", 0, -1)
+        prev = f
+      end
     end
   end
 
