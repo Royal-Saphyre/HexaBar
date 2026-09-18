@@ -85,6 +85,12 @@ local function BuildKeyString()
   return table.concat(parts)
 end
 
+local function RefreshHotkeyText(button)
+  if ActionButton_UpdateHotkeys then
+    ActionButton_UpdateHotkeys(button, button:GetName())
+  end
+end
+
 local function DoBind(button, keyString)
   local command = BINDING_COMMAND_MAP[button:GetName()]
   if not command then return end
@@ -98,6 +104,7 @@ local function DoBind(button, keyString)
       OnAccept = function()
         SetBinding(keyString, command)
         SaveBindings(GetCurrentBindingSet())
+        RefreshHotkeyText(button)
         HexaBar:Print(keyString .. " rebound.")
       end,
       timeout = 0,
@@ -110,6 +117,7 @@ local function DoBind(button, keyString)
 
   SetBinding(keyString, command)
   SaveBindings(GetCurrentBindingSet())
+  RefreshHotkeyText(button)
   HexaBar:Print(keyString .. " bound.")
 end
 
