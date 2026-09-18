@@ -20,7 +20,7 @@ local function BuildSettingsFrame()
   if settingsFrame then return settingsFrame end
 
   local f = CreateFrame("Frame", "HexaBarSettingsFrame", UIParent)
-  f:SetSize(260, 220)
+  f:SetSize(260, 130)
   f:SetPoint("CENTER")
   f:SetFrameStrata("DIALOG")
   f:SetBackdrop({
@@ -52,47 +52,13 @@ local function BuildSettingsFrame()
     HexaBar:RefreshBars()
   end)
 
-  -- Honeycomb toggle
-  local honeyCheck = CreateFrame("CheckButton", "HexaBarHoneycombCheck", f, "UICheckButtonTemplate")
-  honeyCheck:SetPoint("TOPLEFT", 20, -80)
-  _G[honeyCheck:GetName() .. "Text"]:SetText("Honeycomb offset rows")
-  honeyCheck:SetScript("OnClick", function(self)
-    HexaBar.db.honeycomb = self:GetChecked() and true or false
-    HexaBar:RefreshBars()
-  end)
-
-  -- Slot size slider
-  local sizeSlider = CreateFrame("Slider", "HexaBarSizeSlider", f, "OptionsSliderTemplate")
-  sizeSlider:SetPoint("TOPLEFT", 24, -120)
-  sizeSlider:SetWidth(200)
-  sizeSlider:SetMinMaxValues(24, 48)
-  sizeSlider:SetValueStep(1)
-  _G[sizeSlider:GetName() .. "Low"]:SetText("24")
-  _G[sizeSlider:GetName() .. "High"]:SetText("48")
-  _G[sizeSlider:GetName() .. "Text"]:SetText("Slot size")
-  sizeSlider:SetScript("OnValueChanged", function(self, value)
-    HexaBar.db.slotSize = math.floor(value)
-    HexaBar:RefreshBars()
-  end)
-
-  -- Spacing slider
-  local spaceSlider = CreateFrame("Slider", "HexaBarSpaceSlider", f, "OptionsSliderTemplate")
-  spaceSlider:SetPoint("TOPLEFT", 24, -170)
-  spaceSlider:SetWidth(200)
-  spaceSlider:SetMinMaxValues(0, 16)
-  spaceSlider:SetValueStep(1)
-  _G[spaceSlider:GetName() .. "Low"]:SetText("0")
-  _G[spaceSlider:GetName() .. "High"]:SetText("16")
-  _G[spaceSlider:GetName() .. "Text"]:SetText("Spacing")
-  spaceSlider:SetScript("OnValueChanged", function(self, value)
-    HexaBar.db.slotSpacing = math.floor(value)
-    HexaBar:RefreshBars()
-  end)
+  local hint = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+  hint:SetPoint("TOPLEFT", 20, -80)
+  hint:SetWidth(220)
+  hint:SetJustifyH("LEFT")
+  hint:SetText("Bars keep their original Blizzard size and position. Unlock bars from this menu to drag them.")
 
   f.gryphonCheck = gryphonCheck
-  f.honeyCheck = honeyCheck
-  f.sizeSlider = sizeSlider
-  f.spaceSlider = spaceSlider
 
   settingsFrame = f
   return f
@@ -106,9 +72,6 @@ local function ToggleSettings()
   end
   -- sync widgets to current saved values before showing
   f.gryphonCheck:SetChecked(HexaBar.db.showGryphon)
-  f.honeyCheck:SetChecked(HexaBar.db.honeycomb)
-  f.sizeSlider:SetValue(HexaBar.db.slotSize)
-  f.spaceSlider:SetValue(HexaBar.db.slotSpacing)
   f:Show()
 end
 
