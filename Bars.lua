@@ -12,11 +12,11 @@ local TEX_PATH = "Interface\\AddOns\\HexaBar\\Textures\\"
 -- Each default bar: the frame that can be repositioned as a whole, and
 -- the list of its child button names in order (for spacing/retexture).
 local BAR_DEFS = {
-  { frame = "MainMenuBar",         buttons = "ActionButton",          count = 12, isMain = true },
-  { frame = "MultiBarBottomLeft",  buttons = "MultiBarBottomLeftButton",  count = 12 },
-  { frame = "MultiBarBottomRight", buttons = "MultiBarBottomRightButton", count = 12 },
-  { frame = "MultiBarLeft",        buttons = "MultiBarLeftButton",        count = 12 },
-  { frame = "MultiBarRight",       buttons = "MultiBarRightButton",       count = 12 },
+  { frame = "MainMenuBar",         buttons = "ActionButton",          count = 12, isMain = true, vertical = false },
+  { frame = "MultiBarBottomLeft",  buttons = "MultiBarBottomLeftButton",  count = 12, vertical = false },
+  { frame = "MultiBarBottomRight", buttons = "MultiBarBottomRightButton", count = 12, vertical = false },
+  { frame = "MultiBarLeft",        buttons = "MultiBarLeftButton",        count = 12, vertical = true },
+  { frame = "MultiBarRight",       buttons = "MultiBarRightButton",       count = 12, vertical = true },
 }
 
 -- ---------------------------------------------------------------------
@@ -70,12 +70,21 @@ local function LayoutBar(def)
 
       if i > 1 then
         local prev = _G[def.buttons .. (i - 1)]
-        local yOffset = 0
-        if honeycomb and (i % 2 == 0) then
-          yOffset = size / 4 -- nudge every other slot up/down for the hex-grid look
-        end
         button:ClearAllPoints()
-        button:SetPoint("LEFT", prev, "RIGHT", spacing, yOffset)
+
+        if def.vertical then
+          local xOffset = 0
+          if honeycomb and (i % 2 == 0) then
+            xOffset = size / 4 -- nudge every other slot sideways for vertical bars
+          end
+          button:SetPoint("TOP", prev, "BOTTOM", xOffset, -spacing)
+        else
+          local yOffset = 0
+          if honeycomb and (i % 2 == 0) then
+            yOffset = size / 4 -- nudge every other slot up for horizontal bars
+          end
+          button:SetPoint("LEFT", prev, "RIGHT", spacing, yOffset)
+        end
       end
     end
   end
