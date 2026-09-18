@@ -3,9 +3,10 @@
 -- Spawning fresh SecureActionButtons for spellcasting is a common source
 -- of taint/action-blocked bugs in 3.3.5. Instead this file RESKINS the
 -- existing default Blizzard action buttons in place: same secure buttons,
--- same protected click handlers, same default screen position anchors --
--- we just resize them, re-texture them as hexagons, tighten their
--- spacing, and (optionally) let their parent bar frame be dragged.
+-- same protected click handlers, same default screen position AND size --
+-- only the button texture shape changes (square -> hexagon). Bars can
+-- optionally be dragged to a new position via the minimap unlock menu,
+-- but nothing is resized or re-spaced automatically.
 
 local TEX_PATH = "Interface\\AddOns\\HexaBar\\Textures\\"
 
@@ -23,21 +24,18 @@ local BAR_DEFS = {
 -- Retexture a single default action button as a hex slot
 -- ---------------------------------------------------------------------
 
-local function SkinButton(button, size)
+local function SkinButton(button)
   if not button or button.hexaBarSkinned then return end
 
-  button:SetSize(size, size)
+  -- deliberately NOT resizing or repositioning - keep Blizzard's own
+  -- size/anchors exactly as-is. Only the texture shape changes.
 
-  -- hide stock square border art so only our hex border shows
   local name = button:GetName()
   local normalTex = _G[name .. "NormalTexture"]
   if normalTex then normalTex:SetTexture(nil) end
 
   local icon = _G[name .. "Icon"]
   if icon then
-    icon:ClearAllPoints()
-    icon:SetPoint("TOPLEFT", 3, -3)
-    icon:SetPoint("BOTTOMRIGHT", -3, 3)
     icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   end
 
@@ -59,33 +57,10 @@ end
 -- ---------------------------------------------------------------------
 
 local function LayoutBar(def)
-  local size    = HexaBar.db.slotSize
-  local spacing = HexaBar.db.slotSpacing
-  local honeycomb = HexaBar.db.honeycomb
-
   for i = 1, def.count do
     local button = _G[def.buttons .. i]
     if button then
-      SkinButton(button, size)
-
-      if i > 1 then
-        local prev = _G[def.buttons .. (i - 1)]
-        button:ClearAllPoints()
-
-        if def.vertical then
-          local xOffset = 0
-          if honeycomb and (i % 2 == 0) then
-            xOffset = size / 4 -- nudge every other slot sideways for vertical bars
-          end
-          button:SetPoint("TOP", prev, "BOTTOM", xOffset, -spacing)
-        else
-          local yOffset = 0
-          if honeycomb and (i % 2 == 0) then
-            yOffset = size / 4 -- nudge every other slot up for horizontal bars
-          end
-          button:SetPoint("LEFT", prev, "RIGHT", spacing, yOffset)
-        end
-      end
+      SkinButton(button)
     end
   end
 end
