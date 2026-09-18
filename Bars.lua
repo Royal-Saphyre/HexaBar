@@ -168,6 +168,17 @@ end
 -- Init
 -- ---------------------------------------------------------------------
 
+local function LayoutAllBars()
+  for _, def in ipairs(BAR_DEFS) do
+    LayoutBar(def)
+  end
+  ApplyGryphons()
+end
+
+-- exposed so Minimap.lua's settings panel can re-run layout live
+-- after the user drags a size/spacing slider or flips a checkbox
+HexaBar.LayoutAllBars = LayoutAllBars
+
 local function InitBars()
   for _, def in ipairs(BAR_DEFS) do
     local barFrame = _G[def.frame]
@@ -175,9 +186,8 @@ local function InitBars()
       RestorePosition(barFrame, def)
       ApplyDrag(barFrame, def)
     end
-    LayoutBar(def)
   end
-  ApplyGryphons()
+  LayoutAllBars()
 end
 
 HexaBar:RegisterInit(InitBars)
