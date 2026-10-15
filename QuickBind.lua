@@ -1,4 +1,4 @@
--- QuickBind.lua
+-- QuickBind.lua (standalone - no HexaBar needed)
 -- Adds a "Quick Bind" button to the Game Menu (Esc menu). Clicking it closes
 -- the menu and puts every reskinned action button into bind mode: hover a
 -- slot, press a key (modifiers included), then choose whether it goes on
@@ -9,10 +9,14 @@ local BAR_DEFS_BUTTONS = {
     "MultiBarLeftButton", "MultiBarRightButton",
 }
 
+local function Print(msg)
+    DEFAULT_CHAT_FRAME:AddMessage("|cffffd200QuickBind:|r " .. tostring(msg))
+end
+
 local bindModeActive = false
 local hoveredButton = nil
 
-local keyListenerFrame = CreateFrame("Frame", "HexaBarKeyListener")
+local keyListenerFrame = CreateFrame("Frame", "QuickBindKeyListener")
 keyListenerFrame:Hide()
 keyListenerFrame:EnableKeyboard(true)
 
@@ -30,25 +34,27 @@ local function ForEachActionButton(fn)
 end
 
 local function FlashOn(button)
-    if button.hexaBarBorder then
-        button.hexaBarBorder:SetVertexColor(1, 0.9, 0.4)
+    if not button.qbOverlay then
+        local tex = button:CreateTexture(nil, "OVERLAY")
+        tex:SetAllPoints(button)
+        tex:SetTexture("Interface\\Buttons\\WHITE8X8")
+        tex:SetVertexColor(1, 0.9, 0.4, 0.35)
+        tex:SetBlendMode("ADD")
+        button.qbOverlay = tex
     end
-    if not button.hexaBarBindPrompt then
+    button.qbOverlay:Show()
+    if not button.qbBindPrompt then
         local fs = button:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
         fs:SetPoint("CENTER")
         fs:SetText("+")
-        button.hexaBarBindPrompt = fs
+        button.qbBindPrompt = fs
     end
-    button.hexaBarBindPrompt:Show()
+    button.qbBindPrompt:Show()
 end
 
 local function FlashOff(button)
-    if button.hexaBarBorder then
-        button.hexaBarBorder:SetVertexColor(1, 1, 1)
-    end
-    if button.hexaBarBindPrompt then
-        button.hexaBarBindPrompt:Hide()
-    end
+    if button.qbOverlay then button.qbOverlay:Hide() end
+    if button.qbBindPrompt then button.qbBindPrompt:Hide() end
 end
 
 -- ---------------------------------------------------------------------
@@ -108,13 +114,13 @@ local function ApplyBinding(button, command, keyString, slot)
         end
     else
         if key1 == keyString then
-            HexaBar:Print(keyString .. " is already on Key 1 of this slot.")
+            Print(keyString .. " is already on Key 1 of this slot.")
             return
         end
         if key2 then SetBinding(key2) end
         SetBinding(keyString, command)
         if not key1 then
-            HexaBar:Print("Slot had no Key 1, so " .. keyString .. " went on Key 1.")
+            Print("Slot had no Key 1, so " .. keyString .. " went on Key 1.")
         end
     end
 
@@ -123,11 +129,11 @@ local function ApplyBinding(button, command, keyString, slot)
 
     local newKey1, newKey2 = GetBindingKey(command)
     local slotUsed = (newKey1 == keyString) and 1 or 2
-    HexaBar:Print(keyString .. " bound to Key " .. slotUsed .. ".")
+    Print(keyString .. " bound to Key " .. slotUsed .. ".")
 end
 
 -- Overwrite warning (only shown when the key is used by another command)
-StaticPopupDialogs["HEXABAR_CONFIRM_REBIND"] = {
+StaticPopupDialogs["QUICKBIND_CONFIRM_REBIND"] = {
     text = "\"%s\" is already bound to %s.\nOverwrite it and bind to this slot instead?",
     button1 = "Overwrite",
     button2 = "Cancel",
@@ -144,7 +150,7 @@ StaticPopupDialogs["HEXABAR_CONFIRM_REBIND"] = {
 local function TryBind(button, command, keyString, slot)
     local existing = GetBindingAction(keyString)
     if existing and existing ~= "" and existing ~= command then
-        StaticPopup_Show("HEXABAR_CONFIRM_REBIND", keyString, PrettyCommandName(existing),
+        StaticPopup_Show("QUICKBIND_CONFIRM_REBIND", keyString, PrettyCommandName(existing),
             { button = button, command = command, keyString = keyString, slot = slot })
         return
     end
@@ -158,7 +164,7 @@ end
 local chooser
 
 local function CreateChooser()
-    local f = CreateFrame("Frame", "HexaBarSlotChooser", UIParent)
+    local f = CreateFrame("Frame", "QuickBindSlotChooser", UIParent)
     f:SetWidth(320)
     f:SetHeight(120)
     f:SetPoint("CENTER", UIParent, "CENTER", 0, 150)
@@ -229,7 +235,7 @@ local function ExitBindMode()
     if chooser then chooser:Hide() end
     ForEachActionButton(FlashOff)
     hoveredButton = nil
-    HexaBar:Print("Quick Bind closed.")
+    Print("Quick Bind closed.")
 end
 
 local function EnterBindMode()
@@ -237,13 +243,13 @@ local function EnterBindMode()
     keyListenerFrame:Show()
     ForEachActionButton(function(button)
         FlashOn(button)
-        if not button.hexaBarBindHooked then
+        if not button.qbBindHooked then
             button:HookScript("OnEnter", function(self) if bindModeActive then hoveredButton = self end end)
             button:HookScript("OnLeave", function(self) if bindModeActive and hoveredButton == self then hoveredButton = nil end end)
-            button.hexaBarBindHooked = true
+            button.qbBindHooked = true
         end
     end)
-    HexaBar:Print("Quick Bind active. Hover a slot and press a key. Escape to finish.")
+    Print("Quick Bind active. Hover a slot and press a key. Escape to finish.")
 end
 
 keyListenerFrame:SetScript("OnKeyDown", function(self, key)
@@ -276,7 +282,7 @@ end)
 -- ---------------------------------------------------------------------
 
 local function InsertGameMenuButton()
-    if HexaBarQuickBindButton then return end
+    if QuickBindMenuButton then return end
 
     local logoutButton = GameMenuButtonLogout
     if not logoutButton then return end
@@ -301,7 +307,7 @@ local function InsertGameMenuButton()
         end
     end
 
-    local btn = CreateFrame("Button", "HexaBarQuickBindButton", GameMenuFrame, "GameMenuButtonTemplate")
+    local btn = CreateFrame("Button", "QuickBindMenuButton", GameMenuFrame, "GameMenuButtonTemplate")
     btn:SetText("Quick Bind")
     btn:SetPoint("TOP", logoutButton, "BOTTOM", 0, -1)
     btn:SetScript("OnClick", function()
@@ -334,4 +340,6 @@ local function InitQuickBind()
     end
 end
 
-HexaBar:RegisterInit(InitQuickBind)
+local initFrame = CreateFrame("Frame")
+initFrame:RegisterEvent("PLAYER_LOGIN")
+initFrame:SetScript("OnEvent", function() InitQuickBind() end)
